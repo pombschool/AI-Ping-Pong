@@ -1,17 +1,15 @@
-
-/*created by prashant shukla */
-
 var paddle2 =10,paddle1=10;
-
 var paddle1X = 10,paddle1Height = 110;
 var paddle2Y = 685,paddle2Height = 70;
-
 var score1 = 0, score2 =0;
 var paddle1Y;
-
 var  playerscore =0;
 var audio1;
 var pcscore =0;
+var wristX = 0;
+var wristY = 0;
+var wristScore = 0;
+
 //ball x and y and speedx speed y and radius
 var ball = {
     x:350/2,
@@ -22,11 +20,23 @@ var ball = {
 }
 
 function setup(){
-  var canvas =  createCanvas(700,600);
+  canvas =  createCanvas(700,600);
+  canvas.parent("canvas");
+
+  video = createCapture(VIDEO);
+
+  posenet = ml5.poseNet(video, modelLoaded);
+  posenet.on("pose", gotResults);
 }
 
 
 function draw(){
+image(video, 0, 0, 700, 600)
+if(wristScore > 0.2) {
+  fill("#ff00ff");
+  stroke("#ff00ff");
+  circle(wristX, wristY, 2500)
+}
 
  background(0); 
 
@@ -52,7 +62,7 @@ function draw(){
     //pc computer paddle
     fill("#FFA500");
     stroke("#FFA500");
-   var paddle2y =ball.y-paddle2Height/2;  rect(paddle2Y,paddle2y,paddle2,paddle2Height,100);
+    paddle2y =ball.y-paddle2Height/2;  rect(paddle2Y,paddle2y,paddle2,paddle2Height,100);
     
     //function midline call
     midline();
@@ -82,7 +92,7 @@ function reset(){
 //function midline draw a line in center
 function midline(){
     for(i=0;i<480;i+=10) {
-    var y = 0;
+    y = 0;
     fill("white");
     stroke(0);
     rect(width/2,y+i,10,480);
@@ -162,4 +172,17 @@ function paddleInCanvas(){
   if(mouseY < 0){
     mouseY =0;
   }  
+}
+
+function modelLoaded() {
+  console.log("Model Loaded");
+}
+
+function gotResults(results) {
+  if(results.length > 0) {
+    console.log(results);
+    wristX = results[0].pose.rightWrist.x;
+    wristY = results[0].pose.rightWrist.y;
+    wirstScore = results[0].pose.rightWrist.score;
+  }
 }
